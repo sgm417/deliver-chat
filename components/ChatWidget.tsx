@@ -1,10 +1,63 @@
-'use client'
-import { useState } from 'react'
-export default function ChatWidget({mode='floating'}:{mode?:'floating'|'full'}){
-  const [open,setOpen]=useState(mode==='full')
-  const [msg,setMsg]=useState('')
-  const [messages,setMessages]=useState([{role:'bot',text:'Hello 👋 How can we help with your delivery today?'}])
-  const send=()=>{if(!msg.trim())return;setMessages([...messages,{role:'user',text:msg},{role:'bot',text:'Thanks! Team will reply (V1 Live)'}] as any);setMsg('')}
-  if(mode==='full'){return <div className="w-full h-screen flex flex-col max-w-3xl mx-auto border"><div className="p-4 bg-[#8B2D5E] text-white font-bold">Deliver Uganda — Live Chat (Full Page)</div><div className="flex-1 overflow-auto p-4 space-y-2 bg-gray-50">{messages.map((m,i)=><div key={i} className={m.role==='user'?'text-right':''}><span className={`inline-block px-3 py-2 rounded-lg ${m.role==='user'?'bg-[#8B2D5E] text-white':'bg-white border'}`}>{m.text}</span></div>)}</div><div className="p-3 border-t flex gap-2"><input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Type..." className="flex-1 border rounded-full px-4 py-2 outline-none"/><button onClick={send} className="bg-[#8B2D5E] text-white px-6 py-2 rounded-full">Send</button></div></div>}
-  return (<><div>{!open&&<button onClick={()=>setOpen(true)} className="fixed bottom-5 right-5 z-50 w-16 h-16 rounded-full bg-[#8B2D5E] text-white shadow-2xl flex items-center justify-center" style={{animation:'breathe 2s ease-in-out infinite'}}>💬<span className="absolute -top-1 -right-1 bg-green-500 text-[10px] px-1.5 py-0.5 rounded-full">Send visible</span></button>}{open&&<div className="fixed bottom-5 right-5 z-50 w-[340px] h-[460px] bg-white rounded-2xl shadow-2xl flex flex-col border overflow-hidden"><div className="bg-[#8B2D5E] text-white p-3 flex justify-between items-center"><b>V1 LiveChat breathing</b><button onClick={()=>setOpen(false)}>✕</button></div><div className="flex-1 overflow-auto p-3 space-y-2 bg-gray-50">{messages.map((m,i)=><div key={i} className={m.role==='user'?'text-right':''}><span className={`inline-block px-3 py-2 rounded-lg text-sm ${m.role==='user'?'bg-[#8B2D5E] text-white':'bg-white border'}`}>{m.text}</span></div>)}</div><div className="p-2 border-t flex gap-2"><input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Type..." className="flex-1 border rounded-full px-3 py-2 text-sm outline-none"/><button onClick={send} className="bg-[#8B2D5E] text-white px-4 py-2 rounded-full text-sm font-semibold">Send</button></div></div>}</div><style>{`@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}`}</style></>)
+"use client"
+import { useState } from 'react';
+
+export default function ChatWidget(){
+ const [open,setOpen]=useState<boolean>(false);
+ const [rec,setRec]=useState<boolean>(false);
+ const [slide,setSlide]=useState<number>(0);
+
+ return (
+ <>
+ {!open && (
+  <button onClick={()=>setOpen(true)} 
+   style={{position:'fixed',bottom:24,right:24,width:60,height:60,borderRadius:'50%',background:'#4F2C92',border:'none',zIndex:99999,cursor:'pointer'}}>
+   💬
+  </button>
+ )}
+
+ {open && (
+  <div style={{
+   position:'fixed',inset:0,top:'auto',left:'auto',
+   width:'100vw',height:'100vh',
+   maxWidth: typeof window !== 'undefined' && window.innerWidth < 768 ? '100vw' : '380px',
+   maxHeight: typeof window !== 'undefined' && window.innerWidth < 768 ? '100vh' : '580px',
+   bottom: typeof window !== 'undefined' && window.innerWidth > 768 ? 90 : 0,
+   right: typeof window !== 'undefined' && window.innerWidth > 768 ? 24 : 0,
+   background:'#fff',zIndex:99999,display:'flex',flexDirection:'column',
+   borderRadius: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : 16,
+   overflow:'hidden',boxShadow:'0 10px 30px rgba(0,0,0,.2)'
+  }}>
+   {/* TOP BAR WITH X ON LEFT */}
+   <div style={{background:'#4F2C92',color:'#fff',padding:'12px 14px',display:'flex',gap:12,alignItems:'center'}}>
+    <button onClick={()=>setOpen(false)} style={{background:'none',border:'none',color:'#fff',fontSize:22,cursor:'pointer'}}>✕</button>
+    <b>Deliver Uganda</b>
+   </div>
+
+   <div style={{flex:1,padding:16,background:'#F5F3FF'}}>Hello! How can we help deliver today?</div>
+
+   <div style={{padding:12,display:'flex',gap:8,borderTop:'1px solid #eee',alignItems:'center'}}>
+    <input disabled={rec} placeholder={rec ? `← Slide to cancel ${slide>50?'❌':''}` : 'Type message...'} 
+     style={{flex:1,padding:'12px 16px',borderRadius:24,border:'1px solid #ddd',outline:'none'}}/>
+    
+    <button
+     onPointerDown={(e: React.PointerEvent)=>{
+       setRec(true);
+       const sx = e.clientX;
+       const target = e.currentTarget as HTMLElement;
+       target.setPointerCapture(e.pointerId);
+       (target as any).onpointermove = (ev: PointerEvent)=>{
+         const d = sx - ev.clientX;
+         setSlide(d>0?d:0);
+         if(d>100){ setRec(false); setSlide(0); }
+       }
+     }}
+     onPointerUp={()=>{ setRec(false); setSlide(0); }}
+     style={{width:48,height:48,borderRadius:'50%',background:rec?'#EF4444':'#4F2C92',border:'none',color:'#fff',cursor:'pointer',transform:`translateX(-${slide}px)`,transition:rec?'none':'transform .2s'}}>
+     {rec ? '●' : '🎤'}
+    </button>
+   </div>
+  </div>
+ )}
+ </>
+ )
 }
