@@ -1,24 +1,53 @@
-'use client'
-export default function Embed(){
- return(
-  <div style={{width:'100vw',height:'100dvh',display:'flex',flexDirection:'column',background:'#fff',position:'fixed',inset:0}}>
-   
-   {/* TOP BAR - Only X button, no title */}
-   <div style={{padding:'12px',borderBottom:'1px solid #eee',display:'flex',alignItems:'center'}}>
-    <button onClick={()=>window.parent.postMessage('deliver-close','*')} style={{fontSize:'26px',border:'none',background:'none',cursor:'pointer',padding:'4px 8px'}}>✕</button>
-   </div>
+"use client";
+import { useState } from "react";
 
-   {/* CHAT AREA */}
-   <div style={{flex:1,padding:'16px',overflowY:'auto'}}>
-    <div style={{background:'#f1f1f1',padding:'10px 14px',borderRadius:'14px',display:'inline-block'}}>Welcome to Deliver Uganda Live Chat! 👋</div>
-   </div>
+export default function EmbedPage() {
+  const [msg, setMsg] = useState("");
+  const [messages, setMessages] = useState(["Say hi! 👋"]);
 
-   {/* INPUT */}
-   <div style={{padding:'10px',display:'flex',gap:'8px',borderTop:'1px solid #eee',alignItems:'center'}}>
-    <input placeholder="Type a message..." style={{flex:1,padding:'12px 16px',borderRadius:'24px',border:'1px solid #ddd',outline:'none'}}/>
-    <button style={{background:'#5e1742',color:'#fff',border:'none',borderRadius:'20px',padding:'10px 20px',fontWeight:'bold'}}>Send</button>
-   </div>
+  return (
+    <div className="fixed inset-0 w-[100vw] h-[100dvh] flex flex-col bg-white overflow-hidden">
 
-  </div>
- )
+      {/* HEADER - X Close ALWAYS visible */}
+      <div className="h-[56px] shrink-0 bg-[#4a143e] text-white flex items-center justify-between px-4">
+        <span className="font-bold">Deliver Chat 💬</span>
+        <button
+          onClick={() => {
+            if (window.parent!== window) {
+              window.parent.postMessage("CLOSE_DELIVER_CHAT", "*");
+            }
+            window.history.back();
+          }}
+          className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-xl"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* MESSAGES - only this scrolls */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#f9f5f7]">
+        {messages.map((m, i) => (
+          <div key={i} className="bg-white p-3 rounded-xl shadow-sm max-w-[80%]">
+            {m}
+          </div>
+        ))}
+      </div>
+
+      {/* FOOTER - Send button NEVER hidden - with safe area */}
+      <div className="shrink-0 bg-white border-t p-3 flex gap-2 items-center pb-[calc(12px+env(safe-area-inset-bottom))]">
+        <input
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          placeholder="Type a message..."
+          className="flex-1 h-[48px] border border-gray-300 rounded-full px-5 outline-none text-[16px] focus:border-[#4a143e]"
+        />
+        <button
+          onClick={() => { if(msg.trim()){ setMessages([...messages, msg]); setMsg(""); }}}
+          className="h-[48px] px-6 bg-[#4a143e] text-white rounded-full font-bold shrink-0"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
 }
