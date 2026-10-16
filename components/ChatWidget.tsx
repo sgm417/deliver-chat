@@ -1,58 +1,155 @@
-"use client"
-import { useState } from "react";
+'use client';
+import { useState } from 'react';
 
-export default function DeliverChat(){
- const [open,setOpen]=useState(true); // set true to see full screen instantly while testing
- const [rec,setRec]=useState(false);
- const [drag,setDrag]=useState(0);
+type Message = {
+  role: 'user' | 'assistant';
+  text: string;
+};
 
- return (
-  <div style={{fontFamily:'system-ui'}}>
-   {!open && (
-    <button onClick={()=>setOpen(true)} style={{position:'fixed',bottom:18,right:18,width:58,height:58,borderRadius:'50%',background:'#7a365f',color:'#fff',border:'none',zIndex:9999999}}>💬</button>
-   )}
-   {open && (
-    <div style={{
-     position:'fixed',inset:0,
-     width:'100vw',height:'100vh',height:'100dvh',
-     background:'#fff',zIndex:9999999,
-     display:'flex',flexDirection:'column'
-    }}>
-     {/* HEADER WITH X LEFT - AS YOU WANTED */}
-     <div style={{height:54,background:'#7a365f',display:'flex',alignItems:'center',gap:10,padding:'0 14px'}}>
-      <button onClick={()=>setOpen(false)} style={{background:'transparent',border:'none',color:'#fff',fontSize:22,width:32,height:32,cursor:'pointer'}}>✕</button>
-      <b style={{color:'#fff'}}>Deliver Chat</b>
-      <span style={{color:'#fff',marginLeft:6}}>💬</span>
-     </div>
+export default function ChatWidget() {
+  const [isOpen, setIsOpen] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'assistant', text: 'Hello! Welcome to Deliver Uganda. How can I help you today? 🇺🇬' }
+  ]);
+  const [input, setInput] = useState('');
 
-     <div style={{flex:1,background:'#fff',padding:16}}>
-      <div style={{background:'#f5f5f5',padding:'10px 14px',borderRadius:16,display:'inline-block'}}>Say hi! 👋</div>
-     </div>
+  const sendMessage = () => {
+    if (!input.trim()) return;
+    setMessages([...messages, { role: 'user', text: input }, { role: 'assistant', text: 'Thanks! We received: ' + input }]);
+    setInput('');
+  };
 
-     <div style={{padding:10,display:'flex',gap:8,borderTop:'1px solid #eee',alignItems:'center'}}>
-      <div style={{flex:1,position:'relative'}}>
-       {rec && <div style={{position:'absolute',inset:0,background:'#ffeaea',borderRadius:24,display:'flex',alignItems:'center',paddingLeft:14,fontSize:13,transform:`translateX(-${drag}px)`}}>← Slide to cancel {drag>40?'❌':''}</div>}
-       <input disabled={rec} placeholder={rec?' ':'Type a message...'} style={{width:'100%',padding:'12px 14px',borderRadius:24,border:'1px solid #d1d5db',outline:'none',boxSizing:'border-box'}}/>
-      </div>
-      <button style={{background:'#7a365f',color:'#fff',border:'none',borderRadius:20,padding:'10px 18px',fontWeight:600}}>Send</button>
+  if (!isOpen) {
+    return (
       <button
-       onPointerDown={e=>{
-         setRec(true);
-         const sx=e.clientX;
-         const el=e.currentTarget as any;
-         el.setPointerCapture(e.pointerId);
-         el.onpointermove=(ev:PointerEvent)=>{
-           const d=sx-ev.clientX;
-           if(d>0) setDrag(d);
-           if(d>110){ setRec(false); setDrag(0); el.onpointermove=null; }
-         }
-       }}
-       onPointerUp={e=>{ setRec(false); setDrag(0); (e.currentTarget as any).onpointermove=null; }}
-       style={{width:44,height:44,borderRadius:'50%',background:rec?'#ef4444':'#7a365f',border:'none',color:'#fff',transform:`translateX(-${drag}px)`,flexShrink:0}}
-      >🎤</button>
-     </div>
+        onClick={() => setIsOpen(true)}
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '60px',
+          height: '60px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #FFD700, #D4AF37)',
+          border: 'none',
+          fontSize: '28px',
+          cursor: 'pointer',
+          zIndex: 999999,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+        }}
+      >
+        💬
+      </button>
+    );
+  }
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      width: '100vw',
+      height: '100dvh',
+      background: '#fff',
+      zIndex: 999999,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* HEADER - GOLD */}
+      <div style={{
+        height: '60px',
+        background: 'linear-gradient(135deg, #FFD700, #D4AF37)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 16px',
+        color: '#000',
+        fontWeight: 'bold',
+        fontSize: '18px'
+      }}>
+        <span>🇺🇬 Deliver Uganda</span>
+        <button
+          onClick={() => setIsOpen(false)}
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: '#000',
+            color: '#FFD700',
+            border: 'none',
+            fontSize: '20px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          X
+        </button>
+      </div>
+
+      {/* MESSAGES */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', background: '#f9f9f9' }}>
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            style={{
+              maxWidth: '80%',
+              margin: m.role === 'user' ? '8px 0 8px auto' : '8px auto 8px 0',
+              padding: '10px 14px',
+              borderRadius: '18px',
+              background: m.role === 'user' ? '#000' : '#fff',
+              color: m.role === 'user' ? '#FFD700' : '#000',
+              border: m.role === 'user' ? 'none' : '1px solid #eee',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+            }}
+          >
+            {m.text}
+          </div>
+        ))}
+      </div>
+
+      {/* INPUT + SEND BUTTON */}
+      <div style={{
+        height: '70px',
+        borderTop: '1px solid #eee',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 12px',
+        gap: '10px',
+        background: '#fff'
+      }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Type a message..."
+          style={{
+            flex: 1,
+            height: '44px',
+            borderRadius: '22px',
+            border: '1px solid #ddd',
+            padding: '0 16px',
+            outline: 'none',
+            fontSize: '16px'
+          }}
+        />
+        <button
+          onClick={sendMessage}
+          style={{
+            height: '44px',
+            padding: '0 22px',
+            borderRadius: '22px',
+            background: 'linear-gradient(135deg, #FFD700, #D4AF37)',
+            color: '#000',
+            border: 'none',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '15px'
+          }}
+        >
+          SEND
+        </button>
+      </div>
     </div>
-   )}
-  </div>
- )
+  );
 }
